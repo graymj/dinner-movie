@@ -10,13 +10,15 @@ function App() {
     total: 0
   }
 
-  const searchParam = 'rice'
+  const yelpParam = 'rice'
+  const tmdbParam = 'top'
   const location = {
     latitude: null,
     longitude: null
   }
  // eslint-disable-next-line no-unused-vars
  const [restaurants, setRestaurants] = useState(initialState)
+ const [movies, setMovies] = useState(initialState)
 
   // this is a formatter that you could use to format the location if you got it from the browser
   // if this does not make sense than we can go through what the code is doing
@@ -27,19 +29,21 @@ function App() {
         if (locationObject[key]) return `${key}=${locationObject[key]}`
     })
   }
-
+  const tmdb = process.env.REACT_APP_TMDB_API_KEY
+  console.log({ tmdb })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const callYelpApiWithCredentials = async (searchParam, location) => {
-      const requestUrl = 'http://127.0.0.1:4000/https://api.yelp.com/v3/businesses/search'
+    // Yelp call
+    const callYelpApiWithCredentials = async (yelpParam, location) => {
+      const yelpRequestUrl = 'http://127.0.0.1:4000/https://api.yelp.com/v3/businesses/search'
     try {
-      const response = await fetch(`${requestUrl}?term=${searchParam}&location=NYC`, {
+      const yelpResponse = await fetch(`${yelpRequestUrl}?term=${yelpParam}&location=NYC`, {
         headers: {
           'Authorization': `Bearer ${process.env.REACT_APP_YELP_API_KEY}`
         }
-    })
-    const restaurantsResponse = await response.json()
-    console.log(restaurantsResponse)
+      })
+    const restaurantsResponse = await yelpResponse.json()
+    console.log({ restaurantsResponse })
     setRestaurants(restaurantsResponse)
 
     } catch (error) {
@@ -47,8 +51,24 @@ function App() {
     }
   }
 
-    callYelpApiWithCredentials(searchParam, location)
-
+  // TMDB call
+  const callTMDBApiWithCredentials = async (tmdbParam) => {
+    const tmdbRequestUrl = 'https://api.themoviedb.org/3/search/movie'
+    try {
+      const tmdbResponse = await fetch(`${tmdbRequestUrl}?term=${tmdbParam}`, {
+        headers: {
+          'Authorization': `Bearer ${process.env.REACT_APP_TMDB_API_KEY}`
+        }
+      })
+      const movieResponse = await tmdbResponse.json()
+      console.log({ movieResponse })
+      setMovies(movieResponse)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  callTMDBApiWithCredentials(tmdbParam)
+  callYelpApiWithCredentials(yelpParam, location)
 }, [])
 
   return (
